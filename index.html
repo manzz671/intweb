@@ -2,11 +2,12 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>MediaPipe Hands Demo</title>
+    <title>Gesture Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
     <style>
+      body { margin:0; }
       canvas { position: absolute; top: 0; left: 0; }
       video { display: none; }
     </style>
@@ -35,11 +36,24 @@
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-        if (results.multiHandLandmarks) {
-          for (const landmarks of results.multiHandLandmarks) {
-            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
-              {color: '#00FF00', lineWidth: 2});
-            drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          const landmarks = results.multiHandLandmarks[0];
+          drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
+            {color: '#00FF00', lineWidth: 2});
+          drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+
+          // Gesture detection: cek jarak antara ujung jari tengah (landmark 12) dan telapak (landmark 0)
+          const palm = landmarks[0];
+          const middleTip = landmarks[12];
+          const dx = middleTip.x - palm.x;
+          const dy = middleTip.y - palm.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+
+          // Threshold sederhana: kalau jarak > 0.2 → tangan terbuka
+          if (dist > 0.2) {
+            document.body.style.background = "lightblue"; // tangan terbuka
+          } else {
+            document.body.style.background = "pink"; // tangan tertutup
           }
         }
         canvasCtx.restore();
@@ -55,4 +69,4 @@
       camera.start();
     </script>
   </body>
-  </html>
+</html> 
